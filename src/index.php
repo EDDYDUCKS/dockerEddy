@@ -20,8 +20,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $nombre = trim($_POST['nombre'] ?? '');
         $precio = trim($_POST['precio'] ?? '');
 
-        if ($nombre === '' || $precio === '' || !is_numeric($precio) || (float)$precio < 0) {
-            $error = 'Por favor ingresa un nombre válido y un precio numérico positivo.';
+        if ($nombre === '') {
+            $error = 'El nombre del producto no puede estar vacío.';
+        } elseif (mb_strlen($nombre) > 100) {
+            $error = 'El nombre del producto no puede exceder los 100 caracteres.';
+        } elseif ($precio === '' || !is_numeric($precio) || (float)$precio <= 0) {
+            $error = 'El precio debe ser un número positivo mayor a 0 (ej. 15.50).';
         } else {
             $stmt = $pdo->prepare('INSERT INTO productos (nombre, precio) VALUES (:nombre, :precio)');
             $stmt->execute([
@@ -39,8 +43,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $nombre = trim($_POST['nombre'] ?? '');
         $precio = trim($_POST['precio'] ?? '');
 
-        if ($id <= 0 || $nombre === '' || $precio === '' || !is_numeric($precio) || (float)$precio < 0) {
-            $error = 'Datos inválidos para actualizar el producto.';
+        if ($id <= 0) {
+            $error = 'Identificador de producto inválido.';
+        } elseif ($nombre === '') {
+            $error = 'El nombre del producto no puede estar vacío.';
+        } elseif (mb_strlen($nombre) > 100) {
+            $error = 'El nombre del producto no puede exceder los 100 caracteres.';
+        } elseif ($precio === '' || !is_numeric($precio) || (float)$precio <= 0) {
+            $error = 'El precio debe ser un número positivo mayor a 0.';
         } else {
             $stmt = $pdo->prepare('UPDATE productos SET nombre = :nombre, precio = :precio WHERE id = :id');
             $stmt->execute([
@@ -250,14 +260,14 @@ if ($buscar !== '') {
         <?php if ($edit_producto): ?>
             <input type="hidden" name="accion" value="actualizar">
             <input type="hidden" name="id" value="<?= htmlspecialchars($edit_producto['id']) ?>">
-            <input type="text" name="nombre" value="<?= htmlspecialchars($edit_producto['nombre']) ?>" required placeholder="Nombre del producto">
-            <input type="number" step="0.01" name="precio" value="<?= htmlspecialchars($edit_producto['precio']) ?>" required placeholder="Precio">
+            <input type="text" name="nombre" value="<?= htmlspecialchars($edit_producto['nombre']) ?>" required maxlength="100" placeholder="Nombre del producto">
+            <input type="number" step="0.01" min="0.01" name="precio" value="<?= htmlspecialchars($edit_producto['precio']) ?>" required placeholder="Precio">
             <button type="submit" class="btn btn-primary">Actualizar</button>
             <a href="index.php" class="btn">Cancelar</a>
         <?php else: ?>
             <input type="hidden" name="accion" value="crear">
-            <input type="text" name="nombre" required placeholder="Nombre del producto">
-            <input type="number" step="0.01" name="precio" required placeholder="Precio">
+            <input type="text" name="nombre" required maxlength="100" placeholder="Nombre del producto">
+            <input type="number" step="0.01" min="0.01" name="precio" required placeholder="Precio">
             <button type="submit" class="btn">Guardar</button>
         <?php endif; ?>
     </form>
